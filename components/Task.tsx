@@ -11,13 +11,17 @@ import React from 'react'
 import Modal from './Modal'
 import { deleteTodo, editTodo } from '@/app/api'
 import { useRouter } from 'next/navigation'
-import { Input } from './ui/input'
+// import { Input } from './ui/input'
 import { TableCell, TableRow } from './ui/table'
 import { useForm } from 'react-hook-form'
+import { Textarea } from './ui/textarea'
 
 const Task: React.FC<{ task: ITask }> = ({ task }) => {
   const router = useRouter()
-  type EditForm = { newTaskText: string }
+  type EditForm = {
+    newTaskText: string
+    description: string
+  }
   const [openModalEdit, setModalEdit] = useState<boolean>(false)
   const [openModalDelete, setModalDelete] = useState<boolean>(false)
   const {
@@ -26,11 +30,14 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
     reset,
     formState: { isSubmitting, errors },
   } = useForm<EditForm>({
-    defaultValues: { newTaskText: task.text },
+    defaultValues: {
+      newTaskText: task.text,
+      description: task.description,
+    },
   })
   //提交编辑
-  const onEditSumbit = async ({ newTaskText }: EditForm) => {
-    await editTodo({ id: task.id, text: newTaskText })
+  const onEditSumbit = async ({ newTaskText, description }: EditForm) => {
+    await editTodo({ id: task.id, text: newTaskText, description })
     setModalEdit(false)
     router.refresh()
   }
@@ -60,7 +67,10 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
     //   <td className="w-full">{task.text}</td>
     //   <td className="flex gap-5">
     <TableRow>
-      <TableCell className="w-full">{task.text}</TableCell>
+      <TableCell className="w-full">
+        <div className="font-medium">{task.text}</div>
+        <div className="text-gray-400 text-sm">{task.description ?? ''}</div>
+      </TableCell>
       <TableCell className="flex gap-5">
         <MdOutlineEditNote
           // onClick={() => setModalEdit(true)}
@@ -75,8 +85,8 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
         <Modal modalOpen={openModalEdit} setModalOpen={setModalEdit}>
           <form onSubmit={handleSubmit(onEditSumbit)}>
             <p className="font-bold text-lg">Edit task</p>
-            <div className="modal-action">
-              <Input
+            <div className="modal-action flex flex-col items-center w-md space-y-4">
+              <Textarea
                 // value={taskToEdit}
                 // onChange={(e) => setTaskToEdit(e.target.value)} //获取当前输入框文本值 存入到react状态中
                 // type="text"
@@ -84,6 +94,15 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
                 {...register('newTaskText', {
                   required: 'Task is required',
                   minLength: { value: 2, message: 'Task is too short.' },
+                })}
+              />
+              <Textarea
+                // value={taskToEdit}
+                // onChange={(e) => setTaskToEdit(e.target.value)} //获取当前输入框文本值 存入到react状态中
+                // type="text"
+                placeholder="Type here"
+                {...register('description', {
+                  required: '',
                 })}
                 // className="input input-border w-full"
               />

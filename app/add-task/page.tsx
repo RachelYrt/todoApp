@@ -6,8 +6,12 @@ import { addTodo } from '../api'
 // import { FormEventHandler } from 'react'
 import { Input } from '@/components/ui/input'
 import { useForm } from 'react-hook-form'
+// import { Textarea } from '@/components/ui/textarea'
 
-type FormValues = { newTaskText: string }
+type FormValues = {
+  newTaskText: string
+  description: string
+}
 
 export default function AddTaskPage() {
   const router = useRouter()
@@ -30,13 +34,16 @@ export default function AddTaskPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ defaultValues: { newTaskText: '' } })
+  } = useForm<FormValues>({
+    defaultValues: { newTaskText: '', description: '' },
+  })
   //解构赋值 从类型是formValues的newtasktext的对象中取出该字段
-  const onSubmit = async ({ newTaskText }: FormValues) => {
+  const onSubmit = async ({ newTaskText, description }: FormValues) => {
     await addTodo({
       //从RHF拿到数据
       id: uuidv4(),
       text: newTaskText,
+      description: description.trim() || '',
     })
     reset()
     router.push('/') //返回主页
@@ -67,6 +74,14 @@ export default function AddTaskPage() {
           rounded-md focus:border-pink-500 focus:ring-2 focus:ring-pink-500
            shadow-[0_0_10px_#3b82f6] focus:shadow-[0_0_20px_#ff00ff]  transition-all duration-300"
         />
+        <textarea
+          placeholder="describe this task"
+          className="input  w-md
+          bg-pink-100 text-black placeholder:text-gray-400 border-black-500"
+          {...register('description', {
+            required: '',
+          })}
+        ></textarea>
         {errors.newTaskText && (
           <span className="text-sm text-red-500">
             {errors.newTaskText.message}
