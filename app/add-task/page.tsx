@@ -1,11 +1,11 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import React from 'react'
-import { v4 as uuidv4 } from 'uuid'
-import { addTodo } from '../api'
+// import { addTodo } from '../api'
 // import { FormEventHandler } from 'react'
 import { Input } from '@/components/ui/input'
 import { useForm } from 'react-hook-form'
+import { useTodoStore } from '../../lib/store/todoStore'
 // import { Textarea } from '@/components/ui/textarea'
 
 type FormValues = {
@@ -15,6 +15,7 @@ type FormValues = {
 
 export default function AddTaskPage() {
   const router = useRouter()
+  const createTask = useTodoStore((s) => s.createTask)
   // const [newTaskValue, setNewTaskValue] = useState('')
   // const handleSumbitNewTodo = async (e: React.FormEvent<HTMLFormElement>) => {
   //   e.preventDefault() //阻止表单默认行为（阻止刷新页面)
@@ -39,15 +40,16 @@ export default function AddTaskPage() {
   })
   //解构赋值 从类型是formValues的newtasktext的对象中取出该字段
   const onSubmit = async ({ newTaskText, description }: FormValues) => {
-    await addTodo({
-      //从RHF拿到数据
-      id: uuidv4(),
-      text: newTaskText,
-      description: description.trim() || '',
-    })
+    // await addTodo({
+    //   //从RHF拿到数据
+    //   id: uuidv4(),
+    //   text: newTaskText,
+    //   description: description.trim() || '',
+    // })
+    await createTask(newTaskText, (description ?? '').trim())
     reset()
     router.push('/') //返回主页
-    router.refresh()
+    // router.refresh()
   }
 
   return (

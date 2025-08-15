@@ -9,21 +9,23 @@ import { Button } from '@/components/ui/button'
 // }
 import React from 'react'
 import Modal from './Modal'
-import { deleteTodo, editTodo } from '@/app/api'
-import { useRouter } from 'next/navigation'
+
 // import { Input } from './ui/input'
 import { TableCell, TableRow } from './ui/table'
 import { useForm } from 'react-hook-form'
 import { Textarea } from './ui/textarea'
+import { useTodoStore } from '@/lib/store/todoStore'
 
 const Task: React.FC<{ task: ITask }> = ({ task }) => {
-  const router = useRouter()
+  // const router = useRouter()
   type EditForm = {
     newTaskText: string
     description: string
   }
   const [openModalEdit, setModalEdit] = useState<boolean>(false)
   const [openModalDelete, setModalDelete] = useState<boolean>(false)
+  const updateTask = useTodoStore((s) => s.updateTask)
+  const removeTask = useTodoStore((s) => s.removeTask)
   const {
     register,
     handleSubmit,
@@ -37,14 +39,19 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
   })
   //提交编辑
   const onEditSumbit = async ({ newTaskText, description }: EditForm) => {
-    await editTodo({ id: task.id, text: newTaskText, description })
+    // await editTodo({ id: task.id, text: newTaskText, description })
+    await updateTask(task.id, {
+      text: newTaskText,
+      description: (description ?? '').trim(),
+    })
     setModalEdit(false)
-    router.refresh()
+    // router.refresh()
   }
   const onDelete = async () => {
-    await deleteTodo(task.id)
+    // await deleteTodo(task.id)
+    await removeTask(task.id)
     setModalDelete(false)
-    router.refresh()
+    // router.refresh()
   }
   // const [taskToEdit, setTaskToEdit] = useState<string>(task.text)
   // const handleSumbitEditTodo: FormEventHandler<HTMLFormElement> = async (e) => {
@@ -75,7 +82,10 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
         <MdOutlineEditNote
           // onClick={() => setModalEdit(true)}
           onClick={() => {
-            reset({ newTaskText: task.text })
+            reset({
+              newTaskText: task.text,
+              description: task.description ?? '',
+            })
             setModalEdit(true)
           }}
           cursor="pointer"
