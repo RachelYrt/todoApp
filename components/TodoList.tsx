@@ -1,5 +1,5 @@
+'use client'
 //父组件todoList接受task（任务数组）
-import { ITask } from '@/types/tasks'
 import React from 'react'
 import Task from './Task'
 import {
@@ -9,11 +9,12 @@ import {
   TableHead,
   TableBody,
 } from '@/components/ui/table'
-interface TodoListProps {
-  tasks: ITask[]
-} // rafc
+import { useTodoStore } from '@/lib/store/todoStore'
+//从store取tasks.map 渲染<task/>
 //react组件 用react.FC声明它的prop类型 接受props返回JSX
-export const TodoList: React.FC<TodoListProps> = ({ tasks }) => {
+export default function TodoList() {
+  const tasks = useTodoStore((s) => s.tasks)
+  if (!tasks.length) return <p>No tasks yet.</p>
   return (
     <div className="overflow-x-auto">
       <Table className="w-full gap-5">
@@ -33,17 +34,3 @@ export const TodoList: React.FC<TodoListProps> = ({ tasks }) => {
     </div>
   )
 }
-
-// {/* head
-// <thead>
-//   <tr>
-//     <th>Tasks</th>
-//     <th>Action</th>
-//   </tr>
-// </thead>
-// <tbody>
-//   // row 1
-//   {tasks.map((task) => (
-//     <Task key={task.id} task={task} />
-//   ))}
-// </tbody> */}

@@ -1,27 +1,21 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import React from 'react'
-import { v4 as uuidv4 } from 'uuid'
-import { addTodo } from '../api'
+// import { addTodo } from '../api'
 // import { FormEventHandler } from 'react'
 import { Input } from '@/components/ui/input'
 import { useForm } from 'react-hook-form'
+import { useTodoStore } from '../../lib/store/todoStore'
+// import { Textarea } from '@/components/ui/textarea'
 
-type FormValues = { newTaskText: string }
+type FormValues = {
+  newTaskText: string
+  description: string
+}
 
 export default function AddTaskPage() {
   const router = useRouter()
-  // const [newTaskValue, setNewTaskValue] = useState('')
-  // const handleSumbitNewTodo = async (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault() //阻止表单默认行为（阻止刷新页面)
-  //   // addTodo 读取当前状态newTaskValue,传给API
-  //   await addTodo({
-  //     id: uuidv4(),
-  //     text: newTaskValue,
-  //   })
-  //   setNewTaskValue('')
-  //   router.push('/')
-  //   router.refresh()
+  const createTask = useTodoStore((s) => s.createTask)
   //useForm 创建表单实例，defaultvalues:初始值(等同于usestate(‘’))
   //register 输入控件注册给RHF; handlesubmit：包装提交函数、自动防默认、先校验
   //formState：表单状态（errors/isSubmitting)
@@ -30,17 +24,15 @@ export default function AddTaskPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ defaultValues: { newTaskText: '' } })
+  } = useForm<FormValues>({
+    defaultValues: { newTaskText: '', description: '' },
+  })
+  //defaultValues 表单初始值
   //解构赋值 从类型是formValues的newtasktext的对象中取出该字段
-  const onSubmit = async ({ newTaskText }: FormValues) => {
-    await addTodo({
-      //从RHF拿到数据
-      id: uuidv4(),
-      text: newTaskText,
-    })
+  const onSubmit = async ({ newTaskText, description }: FormValues) => {
+    await createTask(newTaskText, (description ?? '').trim())
     reset()
     router.push('/') //返回主页
-    router.refresh()
   }
 
   return (
@@ -52,10 +44,6 @@ export default function AddTaskPage() {
         className="flex flex-col items-center space-y-4"
       >
         <Input
-          // value={newTaskValue}
-          // onChange={(e) => setNewTaskValue(e.target.value)}
-          // type="text"
-          // required
           placeholder="type new task here..."
           //register('输入框字段名',校验规则rules)
           {...register('newTaskText', {
@@ -67,6 +55,14 @@ export default function AddTaskPage() {
           rounded-md focus:border-pink-500 focus:ring-2 focus:ring-pink-500
            shadow-[0_0_10px_#3b82f6] focus:shadow-[0_0_20px_#ff00ff]  transition-all duration-300"
         />
+        <textarea
+          placeholder="describe this task"
+          className="input  w-md
+          bg-pink-100 text-black placeholder:text-gray-400 border-black-500"
+          {...register('description', {
+            required: '',
+          })}
+        ></textarea>
         {errors.newTaskText && (
           <span className="text-sm text-red-500">
             {errors.newTaskText.message}

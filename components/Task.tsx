@@ -4,68 +4,64 @@ import { MdOutlineEditNote } from 'react-icons/md'
 import { BiTrash } from 'react-icons/bi'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-// interface TaskProps {
-//   task: ITask
-// }
 import React from 'react'
 import Modal from './Modal'
-import { deleteTodo, editTodo } from '@/app/api'
-import { useRouter } from 'next/navigation'
-import { Input } from './ui/input'
+
 import { TableCell, TableRow } from './ui/table'
 import { useForm } from 'react-hook-form'
+import { Textarea } from './ui/textarea'
+import { useTodoStore } from '@/lib/store/todoStore'
 
 const Task: React.FC<{ task: ITask }> = ({ task }) => {
-  const router = useRouter()
-  type EditForm = { newTaskText: string }
+  //定义react函数组件 接受task类型为ITask
+  type EditForm = {
+    newTaskText: string
+    description: string
+  }
   const [openModalEdit, setModalEdit] = useState<boolean>(false)
   const [openModalDelete, setModalDelete] = useState<boolean>(false)
+  const updateTask = useTodoStore((s) => s.updateTask)
+  const removeTask = useTodoStore((s) => s.removeTask)
   const {
     register,
-    handleSubmit,
+    handleSubmit, //生成onsubmit处理函数
     reset,
     formState: { isSubmitting, errors },
   } = useForm<EditForm>({
-    defaultValues: { newTaskText: task.text },
+    //useForm是RHF钩子 用来管理任何表单数据/校验/提交流程，editForm是泛型参数 告诉TS 表单里有哪些字段及类型
+    defaultValues: {
+      newTaskText: task.text,
+      description: task.description,
+    },
   })
   //提交编辑
-  const onEditSumbit = async ({ newTaskText }: EditForm) => {
-    await editTodo({ id: task.id, text: newTaskText })
+  const onEditSumbit = async ({ newTaskText, description }: EditForm) => {
+    await updateTask(task.id, {
+      text: newTaskText,
+      description: (description ?? '').trim(),
+    })
     setModalEdit(false)
-    router.refresh()
   }
   const onDelete = async () => {
-    await deleteTodo(task.id)
+    // await deleteTodo(task.id)
+    await removeTask(task.id)
     setModalDelete(false)
-    router.refresh()
+    // router.refresh()
   }
-  // const [taskToEdit, setTaskToEdit] = useState<string>(task.text)
-  // const handleSumbitEditTodo: FormEventHandler<HTMLFormElement> = async (e) => {
-  //   e.preventDefault()
-  //   await editTodo({
-  //     id: task.id,
-  //     text: taskToEdit,
-  //   })
-  //   // setTaskToEdit('')
-  //   setModalEdit(false)
-  //   router.refresh()
-  // }
-  // const handleDeleteTodo = async (id: string) => {
-  //   await deleteTodo(id)
-  //   setModalDelete(false)
-  //   router.refresh()
-  // }
   return (
-    // <tr key={task.id}>
-    //   <td className="w-full">{task.text}</td>
-    //   <td className="flex gap-5">
     <TableRow>
-      <TableCell className="w-full">{task.text}</TableCell>
+      <TableCell className="w-full">
+        <div className="font-medium">{task.text}</div>
+        <div className="text-gray-400 text-sm">{task.description ?? ''}</div>
+      </TableCell>
       <TableCell className="flex gap-5">
         <MdOutlineEditNote
           // onClick={() => setModalEdit(true)}
           onClick={() => {
-            reset({ newTaskText: task.text })
+            reset({
+              newTaskText: task.text,
+              description: task.description ?? '',
+            })
             setModalEdit(true)
           }}
           cursor="pointer"
@@ -75,17 +71,19 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
         <Modal modalOpen={openModalEdit} setModalOpen={setModalEdit}>
           <form onSubmit={handleSubmit(onEditSumbit)}>
             <p className="font-bold text-lg">Edit task</p>
-            <div className="modal-action">
-              <Input
-                // value={taskToEdit}
-                // onChange={(e) => setTaskToEdit(e.target.value)} //获取当前输入框文本值 存入到react状态中
-                // type="text"
+            <div className="modal-action flex flex-col items-center w-md space-y-4">
+              <Textarea
                 placeholder="Type here"
                 {...register('newTaskText', {
                   required: 'Task is required',
                   minLength: { value: 2, message: 'Task is too short.' },
                 })}
-                // className="input input-border w-full"
+              />
+              <Textarea
+                placeholder="Type here"
+                {...register('description', {
+                  required: '',
+                })}
               />
               {errors.newTaskText && (
                 <span className="text-sm text-red-500">
@@ -116,8 +114,6 @@ const Task: React.FC<{ task: ITask }> = ({ task }) => {
             </Button>
           </div>
         </Modal>
-        {/* </td>
-    </tr> */}
       </TableCell>
     </TableRow>
   )

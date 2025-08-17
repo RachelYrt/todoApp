@@ -1,9 +1,4 @@
 import React from 'react'
-// import { useRef } from 'react'
-
-// export default function Modal () {
-//   const ref = useRef<HTMLDialogElement>(null);
-// }
 interface modalProps {
   modalOpen: boolean
   setModalOpen: (open: boolean) => boolean | void
