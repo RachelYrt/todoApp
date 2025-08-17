@@ -14,6 +14,7 @@ type Actions = {
   fetchTask: () => Promise<void>
   createTask: (text: string, description?: string) => Promise<void>
   removeTask: (id: string) => Promise<void>
+  //partial<ITask> 效果是不需要每次传完整的ITask，只传要改的字段即可
   updateTask: (id: string, patch: Partial<ITask>) => Promise<void> //partial<ITask补丁类型，适合Patch/Put
 }
 type SeedFile = { tasks: ITask[] }
@@ -23,20 +24,26 @@ const seedTask: ITask[] = Array.isArray(seedFile.tasks) ? seedFile.tasks : []
 export const useTodoStore = create<State & Actions>()(
   devtools(
     persist(
+      //persist 将tasks持久化到localstorage
       (set, get) => ({
+        //小括号包对象({})表示直接返回对象，
         tasks: [],
         loading: false,
 
         async fetchTask() {
-          if (get().tasks.length) return
+          if (get().tasks.length) return //如果有数据就不再灌入，防止初始化覆盖用户改动
+          //首次调用fetchTask 把seed写入后，persist把state存入localstorage，之后再刷新会先从localstorage复原，
           set({ loading: true, error: undefined })
           try {
             const normalized: ITask[] = seedTask.map((t) => ({
+              //t=>{}为函数体块 需要return；t=>()为返回括号内对象
+
               id: String(t.id),
               text: t.text,
               description: t.description,
             }))
             set({
+              //将task更新为normalized
               tasks: normalized,
               loading: false,
             })
@@ -46,15 +53,16 @@ export const useTodoStore = create<State & Actions>()(
           }
         },
         async createTask(text, description = '') {
+          //只改本地store(persist 会写localstorage)
           const id = uuidv4()
           const newTask: ITask = { id, text, description: description.trim() }
           set({ tasks: [newTask, ...get().tasks] })
-          //persist 中间件把tasks写到localstorage
+          //persist 中间件把tasks写到localstorage，以及...get()为平铺旧数组，新数组+旧数组形成新数组
         },
         async updateTask(id, patch) {
           set({
-            tasks: get().tasks.map((t) =>
-              t.id === id ? { ...t, ...patch } : t
+            tasks: get().tasks.map(
+              (t) => (t.id === id ? { ...t, ...patch } : t) //patch覆盖t的同名字段
             ),
           })
         },

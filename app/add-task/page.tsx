@@ -16,17 +16,6 @@ type FormValues = {
 export default function AddTaskPage() {
   const router = useRouter()
   const createTask = useTodoStore((s) => s.createTask)
-  // const [newTaskValue, setNewTaskValue] = useState('')
-  // const handleSumbitNewTodo = async (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault() //阻止表单默认行为（阻止刷新页面)
-  //   // addTodo 读取当前状态newTaskValue,传给API
-  //   await addTodo({
-  //     id: uuidv4(),
-  //     text: newTaskValue,
-  //   })
-  //   setNewTaskValue('')
-  //   router.push('/')
-  //   router.refresh()
   //useForm 创建表单实例，defaultvalues:初始值(等同于usestate(‘’))
   //register 输入控件注册给RHF; handlesubmit：包装提交函数、自动防默认、先校验
   //formState：表单状态（errors/isSubmitting)
@@ -38,18 +27,12 @@ export default function AddTaskPage() {
   } = useForm<FormValues>({
     defaultValues: { newTaskText: '', description: '' },
   })
+  //defaultValues 表单初始值
   //解构赋值 从类型是formValues的newtasktext的对象中取出该字段
   const onSubmit = async ({ newTaskText, description }: FormValues) => {
-    // await addTodo({
-    //   //从RHF拿到数据
-    //   id: uuidv4(),
-    //   text: newTaskText,
-    //   description: description.trim() || '',
-    // })
     await createTask(newTaskText, (description ?? '').trim())
     reset()
     router.push('/') //返回主页
-    // router.refresh()
   }
 
   return (
@@ -61,10 +44,6 @@ export default function AddTaskPage() {
         className="flex flex-col items-center space-y-4"
       >
         <Input
-          // value={newTaskValue}
-          // onChange={(e) => setNewTaskValue(e.target.value)}
-          // type="text"
-          // required
           placeholder="type new task here..."
           //register('输入框字段名',校验规则rules)
           {...register('newTaskText', {
